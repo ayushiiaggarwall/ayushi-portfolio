@@ -32,17 +32,18 @@
     {
       "id": "outskill-research",
       "title": "Deep Researcher Agent — 🏆 1st Place",
-      "date": "2025",
+      "date": "December 2025",
       "outcome": "AI-powered research platform with specialized agents for comprehensive deep research. Built a multi-agent research platform where you upload documents, pick a research mode, and let specialized agents do the heavy lifting. The Searcher finds relevant sources. The Summarizer condenses long content. The Fact-Checker verifies claims.",
-      "techStack": ["LangChain", "LangGraph", "Streamlit", "OpenAI"],
-      "link": "https://my-deep-researcher-agent.streamlit.app/"
+      "techStack": ["Antigravity", "LangChain", "LangGraph", "Streamlit", "RAG", "Pinecone"],
+      "link": "https://my-deep-researcher-agent.streamlit.app/",
+      "video": "https://youtu.be/Ly1F2DNx2T4?si=W9jWGg5iAkFvMX_l"
     },
     {
       "id": "outskill-travel",
       "title": "Travel Ease — 🏆 1st Place",
-      "date": "2025",
+      "date": "August 2025",
       "outcome": "Your AI travel agent. Itinerary, flights, hotels, weather, food - everything. Travel planning is genuinely painful – you're jumping between 6 different tabs comparing prices manually. One conversation handles everything. Tell it where you want to go, your budget, and your vibe. It builds a coherent itinerary, checks weather, suggests food, and finds bookable options – all in one place. Zero agency fees.",
-      "techStack": ["Lovable", "React", "OpenAI", "Skyscanner & Tripadvisor APIs"],
+      "techStack": ["Lovable", "Bolt", "React", "Skyscanner & Tripadvisor APIs"],
       "link": "https://lets-travel-with-ease.lovable.app/",
       "video": "https://youtu.be/5Z2CeX2XInI?si=7XsDva2ZCCO2e-Hi"
     }
@@ -61,7 +62,7 @@
       "client": "Carpenter Rewards — Live in Production",
       "summary": "Points. Commissions. Bikes. A loyalty system for the people who actually sell your product.",
       "impact": "In building materials, carpenters decide which brand gets installed. I built this for a real 30-year-old B2B manufacturing business. Carpenters scan at point of sale, points update instantly. SMS Integration for reward notifications without an app. Live in production with 300+ carpenters earning bikes and appliances.",
-      "techStack": ["Antigravity", "React", "Node.js", "PostgreSQL", "Twilio API (SMS)"],
+      "techStack": ["Lovable", "React", "Node.js", "PostgreSQL", "Twilio API (SMS)"],
       "link": "https://app.saraswatiplyhouse.com"
     }
   ],

@@ -157,6 +157,8 @@ useGLTF.preload('/models/avatar.glb');
 export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Cast to the RefObject<Element> type framer-motion's viewport prop expects
+  const viewportRoot = scrollContainerRef as React.RefObject<Element>;
   
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -216,12 +218,12 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
       </div>
       {/* Holographic Chat HUD Overlay */}
       <div 
-        className="absolute bottom-24 md:bottom-32 left-0 w-full md:w-auto md:left-[4%] lg:left-[8%] max-w-[100%] md:max-w-[400px] flex flex-col justify-end items-start z-20 pointer-events-auto px-4"
+        className="absolute bottom-[5.5rem] md:bottom-32 left-0 w-full md:w-auto md:left-[4%] lg:left-[8%] max-w-[100%] md:max-w-[400px] flex flex-col justify-end items-start z-20 pointer-events-auto px-3 sm:px-4"
       >
         <style>{`.hide-scroll::-webkit-scrollbar { display: none; }`}</style>
         <div 
           ref={scrollContainerRef}
-          className="w-full flex flex-col gap-4 max-h-[55vh] overflow-y-auto overflow-x-hidden hide-scroll pb-2 pt-10"
+          className="w-full flex flex-col gap-3 md:gap-4 max-h-[40vh] sm:max-h-[45vh] md:max-h-[55vh] overflow-y-auto overflow-x-hidden hide-scroll pb-2 pt-10"
           style={{
             scrollbarWidth: "none", 
             msOverflowStyle: "none",
@@ -235,27 +237,24 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
               const previewText = isLong 
                 ? msg.content.substring(0, 180).replace(/[*#`_]/g, '') + "..."
                 : msg.content;
-              
-              const depth = (arr.length - 1) - idx;
-              const isOlderSession = depth > 1;
                 
               return (
                 <motion.div
                   key={msg.id}
                   layout
+                  // Entry animation
                   initial={{ opacity: 0, x: -30, scale: 0.95, y: 20 }}
-                  animate={{ 
-                    opacity: isOlderSession ? 0.35 : 1, 
-                    scale: isOlderSession ? 0.98 : 1, 
-                    x: 0, y: 0,
-                    filter: isOlderSession ? "blur(4px)" : "blur(0px)" 
-                  }}
+                  // "resting" state when NOT in viewport: blurred & faded
+                  animate={{ opacity: 0.3, scale: 0.98, x: 0, y: 0, filter: "blur(5px)" }}
+                  // Override when scrolled into view: fully clear
+                  whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  viewport={{ root: viewportRoot, once: false, amount: 0.15 }}
                   whileHover={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className={`font-sans w-full md:w-auto min-w-[200px] shrink-0 rounded-2xl p-4 backdrop-blur-xl shadow-2xl pointer-events-auto flex flex-col ${
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className={`font-sans w-full shrink-0 rounded-2xl p-3 md:p-4 backdrop-blur-xl shadow-2xl pointer-events-auto flex flex-col ${
                     msg.role === 'user' 
-                      ? 'bg-purple-900/40 border border-purple-500/30 text-white self-end md:self-start rounded-tr-sm md:rounded-tr-2xl md:rounded-tl-sm' 
+                      ? 'bg-purple-900/40 border border-purple-500/30 text-white self-start rounded-tr-2xl md:rounded-tr-2xl rounded-tl-sm' 
                       : 'bg-[#050505]/90 border border-cyan-500/40 text-cyan-50 self-start rounded-tl-sm'
                   }`}
                 >

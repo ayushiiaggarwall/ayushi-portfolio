@@ -52,7 +52,7 @@ Status: Live in production — credential-based access
 **Category:** AI Research Tool · Multi-Agent System
 **Year:** 2025
 **Built With:** Antigravity
-**Award:** 🏆 1st Place — Outskill AI Generalist Hackathon
+**Award:** 🏆 1st Place — Outskill AI Engineering Hackathon
 
 ### The Problem
 LLMs give confident answers from stale training data.

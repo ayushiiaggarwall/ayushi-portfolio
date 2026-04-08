@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 const links = {
   github: "https://github.com/ayushiiaggarwall",
@@ -13,19 +13,43 @@ const links = {
 
 export function Header() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navLinks = [
+    { href: "/projects", label: "Projects" },
+    { href: "/experience", label: "Experience" },
+    { href: "/about", label: "About" },
+  ];
 
   return (
     <header className="font-mono sticky top-0 z-50 w-full border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-md shadow-sm shadow-black/50">
       <div className="container mx-auto max-w-6xl flex h-14 items-center justify-between px-4">
+        {/* Logo */}
         <div className="flex items-center gap-2">
-          <Link href="/" className={`font-bold tracking-tight transition-colors hover:text-cyan-400 ${pathname === '/' ? 'text-cyan-400' : 'text-white'}`}>Ayushi.</Link>
+          <Link
+            href="/"
+            className={`font-bold tracking-tight transition-colors hover:text-cyan-400 ${pathname === '/' ? 'text-cyan-400' : 'text-white'}`}
+          >
+            Ayushi.
+          </Link>
         </div>
+
+        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6 mr-4">
-          <Link href="/projects" className={`text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/projects' ? 'text-cyan-400' : 'text-white/60'}`}>Projects</Link>
-          <Link href="/experience" className={`text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/experience' ? 'text-cyan-400' : 'text-white/60'}`}>Experience</Link>
-          <Link href="/about" className={`text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === '/about' ? 'text-cyan-400' : 'text-white/60'}`}>About</Link>
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`text-sm font-medium transition-colors hover:text-cyan-400 ${pathname === href ? 'text-cyan-400' : 'text-white/60'}`}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
-        <nav className="flex items-center gap-4">
+
+        {/* Right-side icons + hamburger */}
+        <div className="flex items-center gap-3">
+          {/* Social links – always visible */}
           <Link href={links.github} target="_blank" className="text-white/60 hover:text-cyan-400 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
           </Link>
@@ -36,8 +60,34 @@ export function Header() {
             <Mail className="w-4 h-4" />
           </Link>
 
-        </nav>
+          {/* Hamburger – mobile only */}
+          <button
+            className="md:hidden text-white/70 hover:text-cyan-400 transition-colors p-1"
+            onClick={() => setMobileOpen(prev => !prev)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile slide-down drawer */}
+      {mobileOpen && (
+        <nav className="md:hidden border-t border-white/10 bg-[#0a0a0a]/95 backdrop-blur-md px-4 py-4 flex flex-col gap-4">
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMobileOpen(false)}
+              className={`text-sm font-medium transition-colors hover:text-cyan-400 py-1 ${
+                pathname === href ? 'text-cyan-400' : 'text-white/70'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
