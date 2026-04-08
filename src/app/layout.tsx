@@ -23,11 +23,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className="dark">
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col antialiased bg-[#050505] text-white overflow-x-hidden`}>
+        {/* Universal Ambient Background */}
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-[#050505] to-[#050505] pointer-events-none z-0" />
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-purple-600/10 rounded-full blur-[150px] pointer-events-none z-0" />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
