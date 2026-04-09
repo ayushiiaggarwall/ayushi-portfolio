@@ -311,7 +311,7 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   return (
     <div className="w-full h-full relative flex items-center justify-center">
       {/* Pulled camera back significantly to smoothly fit all pedestal geometry natively into frame limits */}
-      <div className={`absolute inset-0 transition-transform duration-[1000ms] ease-in-out ${messages.length > 0 ? 'md:translate-x-[12%]' : 'translate-x-0'}`}>
+      <div className={`absolute inset-0 -translate-y-12 md:translate-y-0 transition-transform duration-[1000ms] ease-in-out ${messages.length > 0 ? 'md:translate-x-[12%]' : 'translate-x-0'}`}>
         <Canvas camera={{ position: [0, 0, 6.5], fov: 45 }}>
           <ambientLight intensity={2.5} />
           <directionalLight position={[5, 10, 5]} intensity={2} color="#ffffff" castShadow />
