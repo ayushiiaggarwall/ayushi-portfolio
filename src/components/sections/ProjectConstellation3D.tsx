@@ -85,7 +85,7 @@ function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHo
           onPointerDown={(e) => { e.stopPropagation(); onNodeClick(proj); }}
           onPointerOver={() => { setIsHovered(true); isHoveredRef.current = true; document.body.style.cursor = 'pointer'; }}
           onPointerOut={() => { setIsHovered(false); isHoveredRef.current = false; document.body.style.cursor = 'auto'; }}
-          className={`relative flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-full border backdrop-blur-md group origin-center cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-300 max-w-[220px] sm:max-w-[300px] md:max-w-none ${isSelected ? 'border-cyan-400 bg-[#111]/80 shadow-[0_0_20px_rgba(6,182,212,0.4)]' : 'border-white/10 bg-[#050505]/80 hover:bg-[#0a0a0a]/90 hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]'}`}
+          className={`relative flex items-center gap-3 pl-1.5 pr-5 py-2.5 rounded-full border backdrop-blur-md group origin-center cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-300 max-w-[220px] sm:max-w-[300px] md:max-w-none ${isSelected ? 'border-cyan-400 bg-[#111]/90 shadow-[0_0_20px_rgba(6,182,212,0.4)]' : 'border-white/10 bg-[#050505]/90 hover:bg-[#0a0a0a]/95 hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]'}`}
         >
           {isSelected && (
             <div className="absolute inset-0 rounded-full border border-cyan-400/50 scale-[1.1] animate-pulse pointer-events-none" />
@@ -97,8 +97,8 @@ function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHo
             </span>
           </div>
 
-          <span className={`text-[11px] sm:text-sm font-mono font-semibold tracking-wide leading-tight transition-colors duration-300 overflow-hidden ${isSelected ? 'text-white' : 'text-white/90 group-hover:text-white'}`}
-            style={isMobile ? { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: '160px' } : {}}
+          <span className={`text-[11px] sm:text-base font-mono font-bold tracking-wider leading-tight transition-colors duration-300 ${isSelected ? 'text-white' : 'text-white/90 group-hover:text-white'}`}
+            style={isMobile ? { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: '160px' } : { whiteSpace: 'nowrap' }}
           >
             {mainTitle}
             {signalText && (
