@@ -177,62 +177,98 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const [talking, setTalking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    // Optimization: Trigger TTS as soon as we have a meaningful first sentence OR the stream finishes
-    // This removes the long wait for the entire message to stream before we even start the TTS fetch.
-    if (!lastAssistantMessage || spokenMessageId === lastAssistantMessage.id) return;
+  const processedTextRef = useRef("");
+  const audioQueueRef = useRef<string[]>([]);
+  const isPlayingRef = useRef(false);
 
-    const msg = lastAssistantMessage.content;
-    const isFirstSentenceComplete = /[.!?:].* /.test(msg) || msg.length > 120;
-    const isStreamFinished = !isTalking;
-
-    // Trigger only if we have enough content to start OR the stream is totally done
-    if (isFirstSentenceComplete || isStreamFinished) {
-      console.log("🔊 Fast-triggering Neural TTS for message:", lastAssistantMessage.id);
-      setSpokenMessageId(lastAssistantMessage.id); // Mark as "in-progress" immediately
-      
-      const playNeuralTTS = async () => {
-        try {
-          if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.src = "";
-          }
-
-          const response = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: msg }),
-          });
-
-          if (response.ok) {
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            audioRef.current = audio;
-            
-            audio.onplay = () => setTalking(true);
-            audio.onended = () => {
-              setTalking(false);
-              URL.revokeObjectURL(url);
-            };
-            audio.onerror = () => setTalking(false);
-            
-            try {
-              await audio.play();
-            } catch (playError) {
-              console.warn("⚠️ Autoplay blocked:", playError);
-              setTalking(false);
-            }
-          }
-        } catch (e) {
-          console.error("❌ Neural TTS Exception:", e);
-          setTalking(false);
-        }
-      };
-
-      playNeuralTTS();
+  // Core audio logic moved to a reusable function
+  const playNextInQueue = async () => {
+    if (audioQueueRef.current.length === 0) {
+      isPlayingRef.current = false;
+      setTalking(false);
+      return;
     }
-  }, [lastAssistantMessage, spokenMessageId, isTalking]);
+
+    isPlayingRef.current = true;
+    const textToSpeak = audioQueueRef.current.shift();
+    if (!textToSpeak) return playNextInQueue();
+
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToSpeak }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        
+        audio.onplay = () => setTalking(true);
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          playNextInQueue(); // Sequential playback
+        };
+        audio.onerror = () => {
+          setTalking(false);
+          playNextInQueue();
+        };
+        
+        await audio.play();
+      } else {
+        playNextInQueue();
+      }
+    } catch (e) {
+      console.error("Queue Playback Error:", e);
+      playNextInQueue();
+    }
+  };
+
+  useEffect(() => {
+    // 1. Handle Message Reset
+    if (!lastAssistantMessage) {
+      processedTextRef.current = "";
+      return;
+    }
+
+    if (lastAssistantMessage.id !== spokenMessageId) {
+      setSpokenMessageId(lastAssistantMessage.id);
+      processedTextRef.current = "";
+      // Stop current playback and clear queue for new message
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      audioQueueRef.current = [];
+      isPlayingRef.current = false;
+      setTalking(false);
+    }
+
+    // 2. Fragment Extraction
+    const fullContent = lastAssistantMessage.content;
+    const unprocessed = fullContent.slice(processedTextRef.current.length);
+    
+    // Trigger on sentence boundary or on stream completion
+    const sentenceBoundary = /[.!?](\s+|$)/.exec(unprocessed);
+    const isFinished = !isTalking;
+
+    if (sentenceBoundary || (isFinished && unprocessed.trim().length > 0)) {
+       // Extract the chunk to send to TTS
+       const chunkEndIndex = sentenceBoundary ? (sentenceBoundary.index + sentenceBoundary[0].length) : unprocessed.length;
+       const textChunk = unprocessed.slice(0, chunkEndIndex).trim();
+
+       if (textChunk.length > 0) {
+         processedTextRef.current += unprocessed.slice(0, chunkEndIndex);
+         audioQueueRef.current.push(textChunk);
+         
+         if (!isPlayingRef.current) {
+           playNextInQueue();
+         }
+       }
+    }
+  }, [lastAssistantMessage?.content, lastAssistantMessage?.id, isTalking, spokenMessageId]);
 
   useEffect(() => {
     // Cleanup on unmount
