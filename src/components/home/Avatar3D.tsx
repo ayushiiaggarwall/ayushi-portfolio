@@ -352,13 +352,13 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
                   layout
                   // Entry animation
                   initial={{ opacity: 0, x: -30, scale: 0.95, y: 20 }}
-                  // "resting" state when NOT in viewport: blurred & faded
-                  animate={{ opacity: 0.3, scale: 0.98, x: 0, y: 0, filter: "blur(5px)" }}
-                  // Override when scrolled into view: fully clear
+                  // "resting" state when NOT in focus: significantly blurred & transparent
+                  animate={{ opacity: 0.05, scale: 0.95, x: 0, y: 0, filter: "blur(12px)" }}
+                  // Active focus area: crystal clear
                   whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  viewport={{ root: viewportRoot, once: false, amount: 0.15 }}
+                  viewport={{ root: viewportRoot, once: false, amount: 0.4 }}
                   whileHover={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                  exit={{ opacity: 0, scale: 0.9, filter: "blur(15px)" }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
                   className={`font-sans w-full shrink-0 rounded-2xl p-3 md:p-4 backdrop-blur-xl shadow-2xl pointer-events-auto flex flex-col ${
                     msg.role === 'user' 
