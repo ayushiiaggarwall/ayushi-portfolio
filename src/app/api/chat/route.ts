@@ -13,7 +13,17 @@ const openrouter = createOpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-function getContext() {
+// Cache the context in memory to avoid redundant FS reads on every request
+let cachedContext: string | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
+
+async function getContext() {
+  const now = Date.now();
+  if (cachedContext && (now - lastCacheTime < CACHE_TTL)) {
+    return cachedContext;
+  }
+
   try {
     // Read the main structure from the import instead of fs to guarantee bundling on Vercel
     let content = 'BASE KNOWLEDGE:\n' + JSON.stringify(knowledge, null, 2);
@@ -24,21 +34,24 @@ function getContext() {
     
     if (fs.existsSync(docsDir)) {
       const files = fs.readdirSync(docsDir);
-      files.forEach(file => {
+      for (const file of files) {
         if (file.endsWith('.md') || file.endsWith('.txt')) {
           try {
             const filePath = path.join(docsDir, file);
+            const fileContent = fs.readFileSync(filePath, 'utf8');
             extraDocuments += `\n--- Document Start: ${file} ---\n`;
-            extraDocuments += fs.readFileSync(filePath, 'utf8');
+            extraDocuments += fileContent;
             extraDocuments += `\n--- Document End ---\n`;
           } catch (e) {
             console.error(`Error reading ${file}:`, e);
           }
         }
-      });
+      }
     }
 
-    return content + extraDocuments;
+    cachedContext = content + extraDocuments;
+    lastCacheTime = now;
+    return cachedContext;
   } catch (error) {
     console.error("Context gather error:", error);
     return 'Knowledge Base Unavailable.';
@@ -52,16 +65,17 @@ export async function POST(req: Request) {
     console.error("OPENROUTER_API_KEY is missing from environment variables.");
     return new Response(JSON.stringify({ 
       error: "Configuration Error", 
-      message: "API Key is missing on Vercel. Please add OPENROUTER_API_KEY to Vercel Environment Variables." 
+      message: "API Key is missing on Vercel." 
     }), { status: 500 });
   }
 
   try {
     const { messages } = await req.json();
-    const context = getContext();
+    const context = await getContext();
 
+    // Switched to Claude 3.5 Sonnet for better reliability and speed vs 4.5
     const result = await streamText({
-      model: openrouter('anthropic/claude-sonnet-4-5'),
+      model: openrouter('anthropic/claude-3.5-sonnet'),
       system: `You are Ayushi Aggarwal. Speak in first person at all times. Never refer to yourself as "Ayushi", "she", or "her". Always say "I", "me", "my".
 
 If someone uses third person ("her projects", "what has she built") — never correct them. Just respond naturally in first person. The correction happens implicitly.

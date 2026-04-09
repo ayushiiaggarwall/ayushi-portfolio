@@ -177,22 +177,37 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const [talking, setTalking] = useState(false);
 
   useEffect(() => {
-    if (lastAssistantMessage && lastAssistantMessage.id !== spokenMessageId) {
+    // Only speak the message once it's finished loading (!isTalking)
+    // This prevents the speech from cutting off and restarting with every new partial chunk
+    if (lastAssistantMessage && !isTalking && lastAssistantMessage.id !== spokenMessageId) {
       const msg = lastAssistantMessage.content;
+      
+      // Stop any current speaking
       window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(msg);
       const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(v => v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google US English"));
+      
+      // Aim for a natural, high-quality feminine voice
+      const femaleVoice = voices.find(v => 
+        v.name.includes("Female") || 
+        v.name.includes("Samantha") || 
+        v.name.includes("Google US English") ||
+        (v.name.includes("Premium") && v.name.includes("English"))
+      );
+      
       if (femaleVoice) utterance.voice = femaleVoice;
       utterance.rate = 1.0;
       utterance.pitch = 1.1;
+      
       utterance.onstart = () => setTalking(true);
       utterance.onend = () => setTalking(false);
       utterance.onerror = () => setTalking(false);
+      
       window.speechSynthesis.speak(utterance);
       setSpokenMessageId(lastAssistantMessage.id);
     }
-  }, [lastAssistantMessage, spokenMessageId]);
+  }, [lastAssistantMessage, spokenMessageId, isTalking]);
 
   useEffect(() => {
     const loadVoices = () => { window.speechSynthesis.getVoices(); };
