@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import knowledge from "@/data/knowledge.json";
 
+// Trigger comment for Vercel redeploy to pick up new env variables
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
