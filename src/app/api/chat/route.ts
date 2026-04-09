@@ -2,7 +2,9 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 import fs from 'fs';
 import path from 'path';
+import knowledge from "@/data/knowledge.json";
 
+export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 const openrouter = createOpenAI({
@@ -12,34 +14,47 @@ const openrouter = createOpenAI({
 
 function getContext() {
   try {
-    // Read the main structure
-    const docPath = path.join(process.cwd(), 'src/data/knowledge.json');
-    let content = 'BASE KNOWLEDGE:\n';
-    if (fs.existsSync(docPath)) {
-      content += fs.readFileSync(docPath, 'utf8');
-    }
+    // Read the main structure from the import instead of fs to guarantee bundling on Vercel
+    let content = 'BASE KNOWLEDGE:\n' + JSON.stringify(knowledge, null, 2);
     
-    // RAG System: Read custom injected documents seamlessly
+    // RAG System: Read custom injected documents
     let extraDocuments = "\n\nSUPPLEMENTARY DOCUMENTS DIRECTORY:\n";
     const docsDir = path.join(process.cwd(), 'src/data/documents');
+    
     if (fs.existsSync(docsDir)) {
       const files = fs.readdirSync(docsDir);
       files.forEach(file => {
         if (file.endsWith('.md') || file.endsWith('.txt')) {
-          extraDocuments += `\n--- Document Start: ${file} ---\n`;
-          extraDocuments += fs.readFileSync(path.join(docsDir, file), 'utf8');
-          extraDocuments += `\n--- Document End ---\n`;
+          try {
+            const filePath = path.join(docsDir, file);
+            extraDocuments += `\n--- Document Start: ${file} ---\n`;
+            extraDocuments += fs.readFileSync(filePath, 'utf8');
+            extraDocuments += `\n--- Document End ---\n`;
+          } catch (e) {
+            console.error(`Error reading ${file}:`, e);
+          }
         }
       });
     }
 
     return content + extraDocuments;
   } catch (error) {
+    console.error("Context gather error:", error);
     return 'Knowledge Base Unavailable.';
   }
 }
 
 export async function POST(req: Request) {
+  console.log("POST /api/chat invocation");
+
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.error("OPENROUTER_API_KEY is missing from environment variables.");
+    return new Response(JSON.stringify({ 
+      error: "Configuration Error", 
+      message: "API Key is missing on Vercel. Please add OPENROUTER_API_KEY to Vercel Environment Variables." 
+    }), { status: 500 });
+  }
+
   try {
     const { messages } = await req.json();
     const context = getContext();
@@ -173,12 +188,11 @@ ${context}`,
 
     return result.toDataStreamResponse();
   } catch (error: any) {
-    // Return the explicit stringified exception
+    console.error("Chat Error:", error);
     return new Response(JSON.stringify({ 
       name: error.name, 
       message: error.message, 
-      stack: error.stack, 
-      key_present: !!process.env.OPENROUTER_API_KEY 
+      diagnostic: "Ensure OPENROUTER_API_KEY is active and model string is correct."
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
