@@ -178,10 +178,18 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Only speak the message once it's finished loading (!isTalking)
-    if (lastAssistantMessage && !isTalking && lastAssistantMessage.id !== spokenMessageId) {
-      const msg = lastAssistantMessage.content;
-      console.log("🔊 Initializing Neural TTS for message:", lastAssistantMessage.id);
+    // Optimization: Trigger TTS as soon as we have a meaningful first sentence OR the stream finishes
+    // This removes the long wait for the entire message to stream before we even start the TTS fetch.
+    if (!lastAssistantMessage || spokenMessageId === lastAssistantMessage.id) return;
+
+    const msg = lastAssistantMessage.content;
+    const isFirstSentenceComplete = /[.!?:].* /.test(msg) || msg.length > 120;
+    const isStreamFinished = !isTalking;
+
+    // Trigger only if we have enough content to start OR the stream is totally done
+    if (isFirstSentenceComplete || isStreamFinished) {
+      console.log("🔊 Fast-triggering Neural TTS for message:", lastAssistantMessage.id);
+      setSpokenMessageId(lastAssistantMessage.id); // Mark as "in-progress" immediately
       
       const playNeuralTTS = async () => {
         try {
@@ -190,7 +198,6 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
             audioRef.current.src = "";
           }
 
-          console.log("🛰️ Fetching audio from /api/tts...");
           const response = await fetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -198,37 +205,24 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
           });
 
           if (response.ok) {
-            console.log("✅ Audio received, preparing playback...");
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
             const audio = new Audio(url);
             audioRef.current = audio;
             
-            audio.onplay = () => {
-              console.log("▶️ Audio started playing");
-              setTalking(true);
-            };
+            audio.onplay = () => setTalking(true);
             audio.onended = () => {
-              console.log("⏹️ Audio ended");
               setTalking(false);
               URL.revokeObjectURL(url);
             };
-            audio.onerror = (e) => {
-              console.error("❌ Audio playback error:", e);
-              setTalking(false);
-            };
+            audio.onerror = () => setTalking(false);
             
             try {
               await audio.play();
-              setSpokenMessageId(lastAssistantMessage.id);
             } catch (playError) {
-              console.warn("⚠️ Autoplay blocked. Click anywhere on the page to enable audio.", playError);
+              console.warn("⚠️ Autoplay blocked:", playError);
               setTalking(false);
             }
-          } else {
-            const err = await response.json();
-            console.error("❌ API Error:", err);
-            setTalking(false);
           }
         } catch (e) {
           console.error("❌ Neural TTS Exception:", e);
