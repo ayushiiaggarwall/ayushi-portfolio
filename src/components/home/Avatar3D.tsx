@@ -178,10 +178,29 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const processedTextRef = useRef("");
-  const audioQueueRef = useRef<string[]>([]);
+  const audioQueueRef = useRef<{ text: string; url?: string }[]>([]);
   const isPlayingRef = useRef(false);
 
-  // Core audio logic moved to a reusable function
+  // Prefetch function to get audio ahead of time
+  const prefetchChunk = async (index: number) => {
+    const item = audioQueueRef.current[index];
+    if (!item || item.url) return;
+
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: item.text }),
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        item.url = URL.createObjectURL(blob);
+      }
+    } catch (e) {
+      console.error("Prefetch error:", e);
+    }
+  };
+
   const playNextInQueue = async () => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
@@ -190,26 +209,36 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
     }
 
     isPlayingRef.current = true;
-    const textToSpeak = audioQueueRef.current.shift();
-    if (!textToSpeak) return playNextInQueue();
-
+    const item = audioQueueRef.current.shift()!;
+    
     try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSpeak }),
-      });
+      // If not prefetched yet, fetch now
+      let url = item.url;
+      if (!url) {
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: item.text }),
+        });
+        if (response.ok) {
+          const blob = await response.blob();
+          url = URL.createObjectURL(blob);
+        }
+      }
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+      if (url) {
         const audio = new Audio(url);
         audioRef.current = audio;
         
+        // Start prefetching the next one while this one plays
+        if (audioQueueRef.current.length > 0) {
+          prefetchChunk(0);
+        }
+
         audio.onplay = () => setTalking(true);
         audio.onended = () => {
-          URL.revokeObjectURL(url);
-          playNextInQueue(); // Sequential playback
+          URL.revokeObjectURL(url!);
+          playNextInQueue();
         };
         audio.onerror = () => {
           setTalking(false);
@@ -227,7 +256,6 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   };
 
   useEffect(() => {
-    // 1. Handle Message Reset
     if (!lastAssistantMessage) {
       processedTextRef.current = "";
       return;
@@ -236,34 +264,34 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
     if (lastAssistantMessage.id !== spokenMessageId) {
       setSpokenMessageId(lastAssistantMessage.id);
       processedTextRef.current = "";
-      // Stop current playback and clear queue for new message
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
       }
+      audioQueueRef.current.forEach(item => item.url && URL.revokeObjectURL(item.url));
       audioQueueRef.current = [];
       isPlayingRef.current = false;
       setTalking(false);
     }
 
-    // 2. Fragment Extraction
     const fullContent = lastAssistantMessage.content;
     const unprocessed = fullContent.slice(processedTextRef.current.length);
-    
-    // Trigger on sentence boundary or on stream completion
     const sentenceBoundary = /[.!?](\s+|$)/.exec(unprocessed);
     const isFinished = !isTalking;
 
     if (sentenceBoundary || (isFinished && unprocessed.trim().length > 0)) {
-       // Extract the chunk to send to TTS
        const chunkEndIndex = sentenceBoundary ? (sentenceBoundary.index + sentenceBoundary[0].length) : unprocessed.length;
        const textChunk = unprocessed.slice(0, chunkEndIndex).trim();
 
        if (textChunk.length > 0) {
          processedTextRef.current += unprocessed.slice(0, chunkEndIndex);
-         audioQueueRef.current.push(textChunk);
+         const newItem = { text: textChunk };
+         audioQueueRef.current.push(newItem);
          
-         if (!isPlayingRef.current) {
+         // Trigger prefetch for the new item immediately if we are already playing
+         if (isPlayingRef.current) {
+           prefetchChunk(audioQueueRef.current.length - 1);
+         } else {
            playNextInQueue();
          }
        }
