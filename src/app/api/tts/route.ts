@@ -26,8 +26,8 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: 'tts-1',
         input: cleanText,
-        voice: 'shimmer', // Highly natural and balanced feminine voice
-        speed: 1.1,       // Keeping it slightly fast-paced as requested before
+        voice: 'nova', // Switched to 'nova' for a more friendly, energetic, and warm persona
+        speed: 1.1,       // Keeping it slightly fast-paced
       }),
     });
 
