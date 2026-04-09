@@ -31,10 +31,10 @@ export default function AboutPage() {
           <div className="w-full md:w-[45%] shrink-0">
             <div className="relative w-full aspect-[4/5] max-w-sm mx-auto md:max-w-none group">
               {/* Cyan Corner Brackets */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 z-20" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 z-20" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 z-20" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 z-20" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 group-active:w-10 group-active:h-10 z-20" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 group-active:w-10 group-active:h-10 z-20" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 group-active:w-10 group-active:h-10 z-20" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400/80 transition-all duration-500 group-hover:w-10 group-hover:h-10 group-active:w-10 group-active:h-10 z-20" />
 
               {/* Image Base Layer */}
               <div className="absolute inset-2 md:inset-3 bg-[#111] overflow-hidden border border-white/5">
@@ -45,7 +45,7 @@ export default function AboutPage() {
                   quality={100}
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-[80%_50%] opacity-80 group-hover:opacity-100 transition-all duration-700 group-hover:scale-[1.03] [filter:grayscale(1)] group-hover:[filter:grayscale(0)]"
+                  className="object-cover object-[80%_50%] opacity-80 group-hover:opacity-100 group-active:opacity-100 transition-all duration-700 group-hover:scale-[1.03] group-active:scale-[1.03] grayscale group-hover:grayscale-0 group-active:grayscale-0"
                 />
                 {/* Scanline overlay for aesthetic */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none mix-blend-overlay" />
