@@ -188,17 +188,26 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
       const utterance = new SpeechSynthesisUtterance(msg);
       const voices = window.speechSynthesis.getVoices();
       
-      // Aim for a natural, high-quality feminine voice
-      const femaleVoice = voices.find(v => 
-        v.name.includes("Female") || 
-        v.name.includes("Samantha") || 
-        v.name.includes("Google US English") ||
-        (v.name.includes("Premium") && v.name.includes("English"))
+      // Prioritize Indian English (en-IN) female voices for a more localized persona
+      const indianFemaleVoice = voices.find(v => 
+        (v.lang.includes("en-IN") || v.name.includes("India")) && 
+        (v.name.includes("Female") || v.name.includes("Sangeeta") || v.name.includes("Heera") || v.name.includes("Veena"))
       );
       
-      if (femaleVoice) utterance.voice = femaleVoice;
-      utterance.rate = 1.0;
-      utterance.pitch = 1.1;
+      // Fallback search if no specific Indian voice is found
+      const fallbackFemaleVoice = voices.find(v => 
+        v.name.includes("Female") || 
+        v.name.includes("Samantha") || 
+        v.name.includes("Google US English")
+      );
+      
+      const selectedVoice = indianFemaleVoice || fallbackFemaleVoice;
+      
+      if (selectedVoice) utterance.voice = selectedVoice;
+      
+      // Increased rate to 1.15 for a faster, more energetic pace
+      utterance.rate = 1.15;
+      utterance.pitch = 1.05;
       
       utterance.onstart = () => setTalking(true);
       utterance.onend = () => setTalking(false);
