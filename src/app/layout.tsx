@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ayushi Portfolio",
   description: "Ayushi Aggarwal — Founder of Merkri Media & AI Product Builder.",
+  icons: {
+    icon: "/favicon.png", // Point to the public/favicon.png we created
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
