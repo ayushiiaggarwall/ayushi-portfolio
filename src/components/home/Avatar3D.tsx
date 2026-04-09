@@ -175,53 +175,61 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   const lastAssistantMessage = messages.slice().reverse().find(m => m.role === "assistant");
   const [spokenMessageId, setSpokenMessageId] = useState<string | null>(null);
   const [talking, setTalking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     // Only speak the message once it's finished loading (!isTalking)
-    // This prevents the speech from cutting off and restarting with every new partial chunk
     if (lastAssistantMessage && !isTalking && lastAssistantMessage.id !== spokenMessageId) {
       const msg = lastAssistantMessage.content;
       
-      // Stop any current speaking
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(msg);
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Prioritize Indian English (en-IN) female voices for a more localized persona
-      const indianFemaleVoice = voices.find(v => 
-        (v.lang.includes("en-IN") || v.name.includes("India")) && 
-        (v.name.includes("Female") || v.name.includes("Sangeeta") || v.name.includes("Heera") || v.name.includes("Veena"))
-      );
-      
-      // Fallback search if no specific Indian voice is found
-      const fallbackFemaleVoice = voices.find(v => 
-        v.name.includes("Female") || 
-        v.name.includes("Samantha") || 
-        v.name.includes("Google US English")
-      );
-      
-      const selectedVoice = indianFemaleVoice || fallbackFemaleVoice;
-      
-      if (selectedVoice) utterance.voice = selectedVoice;
-      
-      // Increased rate to 1.15 for a faster, more energetic pace
-      utterance.rate = 1.15;
-      utterance.pitch = 1.05;
-      
-      utterance.onstart = () => setTalking(true);
-      utterance.onend = () => setTalking(false);
-      utterance.onerror = () => setTalking(false);
-      
-      window.speechSynthesis.speak(utterance);
-      setSpokenMessageId(lastAssistantMessage.id);
+      const playNeuralTTS = async () => {
+        try {
+          // Cancel any existing audio
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+          }
+
+          const response = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: msg }),
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audioRef.current = audio;
+            
+            audio.onplay = () => setTalking(true);
+            audio.onended = () => {
+              setTalking(false);
+              URL.revokeObjectURL(url);
+            };
+            audio.onerror = () => setTalking(false);
+            
+            await audio.play();
+            setSpokenMessageId(lastAssistantMessage.id);
+          }
+        } catch (e) {
+          console.error("Neural TTS Error:", e);
+          setTalking(false);
+        }
+      };
+
+      playNeuralTTS();
     }
   }, [lastAssistantMessage, spokenMessageId, isTalking]);
 
   useEffect(() => {
-    const loadVoices = () => { window.speechSynthesis.getVoices(); };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    // Cleanup on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    };
   }, []);
 
   return (
