@@ -38,7 +38,7 @@ const allProjects = [
   ...knowledge.featuredProjects.map(p => ({ ...p, type: "featured", displayTitle: p.title, displayDesc: p.summary }))
 ];
 
-function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHoveredRef }: any) {
+function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHoveredRef, isMobile }: any) {
   const nodeRef = useRef<THREE.Group>(null);
   const domRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -98,7 +98,7 @@ function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHo
           </div>
 
           <span className={`text-[11px] sm:text-sm font-mono font-semibold tracking-wide leading-tight transition-colors duration-300 overflow-hidden ${isSelected ? 'text-white' : 'text-white/90 group-hover:text-white'}`}
-            style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: '160px' }}
+            style={isMobile ? { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: '160px' } : {}}
           >
             {mainTitle}
             {signalText && (
@@ -114,7 +114,7 @@ function ProjectNode({ proj, idx, total, radius, onNodeClick, activeNodeId, isHo
   );
 }
 
-function OrbitalNodes({ projects, onNodeClick, activeNodeId, radius }: { projects: any[], onNodeClick: (node: any) => void, activeNodeId?: string, radius: number }) {
+function OrbitalNodes({ projects, onNodeClick, activeNodeId, radius, isMobile }: { projects: any[], onNodeClick: (node: any) => void, activeNodeId?: string, radius: number, isMobile: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   const velocityY = useRef(0);
   const isHoveredRef = useRef(false);
@@ -149,6 +149,7 @@ function OrbitalNodes({ projects, onNodeClick, activeNodeId, radius }: { project
           onNodeClick={onNodeClick}
           activeNodeId={activeNodeId}
           isHoveredRef={isHoveredRef}
+          isMobile={isMobile}
         />
       ))}
     </group>
@@ -196,7 +197,7 @@ export function ProjectConstellation3D() {
             </React.Suspense>
           </group>
 
-          <OrbitalNodes projects={allProjects} onNodeClick={setSelectedNode} activeNodeId={selectedNode?.id} radius={orbitalRadius} />
+          <OrbitalNodes projects={allProjects} onNodeClick={setSelectedNode} activeNodeId={selectedNode?.id} radius={orbitalRadius} isMobile={isMobile} />
         </Canvas>
       </div>
 
