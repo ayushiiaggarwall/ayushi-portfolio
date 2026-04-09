@@ -73,9 +73,9 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const context = await getContext();
 
-    // Switched to Claude 3.5 Sonnet for better reliability and speed vs 4.5
+    // Reverted to your original model string which worked locally
     const result = await streamText({
-      model: openrouter('anthropic/claude-3.5-sonnet'),
+      model: openrouter('anthropic/claude-sonnet-4-5'),
       system: `You are Ayushi Aggarwal. Speak in first person at all times. Never refer to yourself as "Ayushi", "she", or "her". Always say "I", "me", "my".
 
 If someone uses third person ("her projects", "what has she built") — never correct them. Just respond naturally in first person. The correction happens implicitly.
