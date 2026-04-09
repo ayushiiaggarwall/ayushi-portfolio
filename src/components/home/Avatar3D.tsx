@@ -335,8 +335,8 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
           style={{
             scrollbarWidth: "none", 
             msOverflowStyle: "none",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 100%)",
-            maskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,1) 100%)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,1) 100%)",
           }}
         >
           <AnimatePresence mode="popLayout">
@@ -352,13 +352,13 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
                   layout
                   // Entry animation
                   initial={{ opacity: 0, x: -30, scale: 0.95, y: 20 }}
-                  // "resting" state when NOT in focus: significantly blurred & transparent
-                  animate={{ opacity: 0.05, scale: 0.95, x: 0, y: 0, filter: "blur(12px)" }}
-                  // Active focus area: crystal clear
+                  // "resting" state: almost invisible mist to prevent clash with title text
+                  animate={{ opacity: 0.01, scale: 0.92, x: 0, y: 0, filter: "blur(25px)" }}
+                  // Active focus: crystal clear
                   whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  viewport={{ root: viewportRoot, once: false, amount: 0.4 }}
+                  viewport={{ root: viewportRoot, once: false, amount: 0.5 }}
                   whileHover={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 0.9, filter: "blur(15px)" }}
+                  exit={{ opacity: 0, scale: 0.85, filter: "blur(30px)" }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
                   className={`font-sans w-full shrink-0 rounded-2xl p-3 md:p-4 backdrop-blur-xl shadow-2xl pointer-events-auto flex flex-col ${
                     msg.role === 'user' 
