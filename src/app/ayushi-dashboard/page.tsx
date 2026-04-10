@@ -13,6 +13,11 @@ type ChatLog = {
 
 function DashboardContent() {
   const [logs, setLogs] = useState<ChatLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [passcode, setPasscode] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [showPasscode, setShowPasscode] = useState(false);
   const [debug, setDebug] = useState<any>(null);
 
   const fetchLogs = async (e?: React.FormEvent) => {
