@@ -226,8 +226,11 @@ KNOWLEDGE CONTEXT (use this to ground your answers — never make up facts not p
 ${context}`,
       messages,
       onFinish: async ({ text }) => {
-        // Asynchronously log the conversation to Vercel KV if configured
-        if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+        // Asynchronously log the conversation
+        const kvUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_API_URL;
+        const kvToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_API_TOKEN;
+
+        if (kvUrl && kvToken) {
           try {
             const userMsg = messages[messages.length - 1]?.content || "N/A";
             const logEntry = {
@@ -235,17 +238,17 @@ ${context}`,
               a: text,
               t: new Date().toISOString(),
             };
-
+            
             // Push to history list (lpush adds to start)
-            await fetch(`${process.env.KV_REST_API_URL}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
+            await fetch(`${kvUrl}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
               method: 'POST',
-              headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+              headers: { Authorization: `Bearer ${kvToken}` }
             });
-
-            // Keep only last 1000 items to avoid growing indefinitely
-            await fetch(`${process.env.KV_REST_API_URL}/ltrim/chat_history/0/999`, {
+            
+            // Keep only last 1000 items
+            await fetch(`${kvUrl}/ltrim/chat_history/0/999`, {
               method: 'POST',
-              headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+              headers: { Authorization: `Bearer ${kvToken}` }
             });
           } catch (e) {
             console.error("KV Log Error:", e);

@@ -10,14 +10,25 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-    return NextResponse.json({ error: 'Storage not configured' }, { status: 500 });
+  const kvUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_API_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_API_TOKEN;
+
+  if (!kvUrl || !kvToken) {
+    return NextResponse.json({ 
+      error: 'Storage not configured',
+      hint: 'Ensure you have Connected your KV storage in the Vercel Storage tab.',
+      debug: {
+        has_KV_URL: !!process.env.KV_REST_API_URL,
+        has_KV_TOKEN: !!process.env.KV_REST_API_TOKEN,
+        has_REDIS_URL: !!process.env.REDIS_URL
+      }
+    }, { status: 500 });
   }
 
   try {
     // Fetch last 100 logs from Vercel KV
-    const response = await fetch(`${process.env.KV_REST_API_URL}/lrange/chat_history/0/99`, {
-      headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+    const response = await fetch(`${kvUrl}/lrange/chat_history/0/99`, {
+      headers: { Authorization: `Bearer ${kvToken}` }
     });
 
     if (!response.ok) {
