@@ -18,9 +18,9 @@ export async function GET(req: Request) {
     if (process.env.REDIS_URL.startsWith('https://')) {
       kvUrl = process.env.REDIS_URL;
     } else if (process.env.REDIS_URL.startsWith('redis://')) {
-      // Try to parse redis://default:PASSWORD@HOST:PORT
+      // Try to parse redis://[user]:PASSWORD@HOST:PORT
       try {
-        const urlMatch = process.env.REDIS_URL.match(/redis:\/\/([^:]+):([^@]+)@([^:]+)/);
+        const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:]+)/);
         if (urlMatch) {
           const [_, user, pass, host] = urlMatch;
           kvUrl = `https://${host}`;
@@ -43,7 +43,10 @@ export async function GET(req: Request) {
         has_KV_REST_API_TOKEN: !!process.env.KV_REST_API_TOKEN,
         has_UPSTASH_REDIS_REST_URL: !!process.env.UPSTASH_REDIS_REST_URL,
         has_UPSTASH_REDIS_REST_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
-        has_REDIS_URL: !!process.env.REDIS_URL
+        has_REDIS_URL: !!process.env.REDIS_URL,
+        redis_url_prefix: process.env.REDIS_URL ? (process.env.REDIS_URL.split(':')[0] + '://' + (process.env.REDIS_URL.includes('@') ? '***@' : '')) : 'none',
+        derived_url: kvUrl ? 'HIDDEN' : 'null',
+        derived_token: kvToken ? 'HIDDEN' : 'null'
       }
     }, { status: 500 });
   }

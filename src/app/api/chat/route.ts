@@ -236,7 +236,7 @@ ${context}`,
             kvUrl = process.env.REDIS_URL;
           } else if (process.env.REDIS_URL.startsWith('redis://')) {
             try {
-              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/([^:]+):([^@]+)@([^:]+)/);
+              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:]+)/);
               if (urlMatch) {
                 const [_, user, pass, host] = urlMatch;
                 kvUrl = `https://${host}`;
