@@ -171,7 +171,19 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
     }
   }, [messages, isTalking]);
 
-  const [viewingMessage, setViewingMessage] = useState<Message | null>(null);
+  const [viewingMessageId, setViewingMessageId] = useState<string | null>(null);
+  const viewingMessage = messages.find(m => m.id === viewingMessageId);
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Auto-scroll modal when content updates while streaming
+    if (modalScrollRef.current && viewingMessage) {
+      modalScrollRef.current.scrollTo({
+        top: modalScrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [viewingMessage?.content]);
   const lastAssistantMessage = messages.slice().reverse().find(m => m.role === "assistant");
   const [spokenMessageId, setSpokenMessageId] = useState<string | null>(null);
   const [talking, setTalking] = useState(false);
@@ -376,7 +388,7 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
                                 {previewText}
                               </p>
                               <button 
-                                onClick={() => setViewingMessage(msg)}
+                                onClick={() => setViewingMessageId(msg.id)}
                                 className="mt-3 text-cyan-400 text-[10px] md:text-[11px] font-bold uppercase tracking-widest hover:text-white transition-colors bg-cyan-900/30 px-3 py-1.5 rounded-sm border border-cyan-500/30 w-full"
                               >
                                 [+] Read Detailed Response
@@ -416,30 +428,29 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
         </div>
       </div>
 
-      {/* Pop-up Reading Dialog for Detailed Markdown Responses */}
       {mounted && typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
-          {viewingMessage && (
+          {viewingMessageId && viewingMessage && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 pointer-events-auto"
             >
-              {/* Absolute blur backdrop */}
               <div 
                 className="absolute inset-0 bg-black/60 backdrop-blur-md"
-                onClick={() => setViewingMessage(null)}
+                onClick={() => setViewingMessageId(null)}
               />
               {/* Modal Body */}
               <motion.div 
+                ref={modalScrollRef}
                 initial={{ scale: 0.95, y: 30 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 30 }}
-                className="relative w-full max-w-[800px] max-h-[85vh] bg-[#080808] border border-cyan-500/40 rounded-2xl p-6 sm:p-8 shadow-[0_0_80px_rgba(6,182,212,0.15)] overflow-y-auto flex flex-col"
+                className="relative w-full max-w-[800px] max-h-[85vh] bg-[#080808] border border-cyan-500/40 rounded-2xl p-6 sm:p-8 shadow-[0_0_80px_rgba(6,182,212,0.15)] overflow-y-auto flex flex-col scroll-smooth"
               >
                 <button 
-                  onClick={() => setViewingMessage(null)}
+                  onClick={() => setViewingMessageId(null)}
                   className="absolute top-4 right-4 sm:top-6 sm:right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
                   aria-label="Close dialog"
                 >
