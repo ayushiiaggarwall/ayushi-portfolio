@@ -27,11 +27,11 @@ async function getContext() {
   try {
     // Read the main structure from the import instead of fs to guarantee bundling on Vercel
     let content = 'BASE KNOWLEDGE:\n' + JSON.stringify(knowledge, null, 2);
-    
+
     // RAG System: Read custom injected documents
     let extraDocuments = "\n\nSUPPLEMENTARY DOCUMENTS DIRECTORY:\n";
     const docsDir = path.join(process.cwd(), 'src/data/documents');
-    
+
     if (fs.existsSync(docsDir)) {
       const files = fs.readdirSync(docsDir);
       for (const file of files) {
@@ -63,9 +63,9 @@ export async function POST(req: Request) {
 
   if (!process.env.OPENROUTER_API_KEY) {
     console.error("OPENROUTER_API_KEY is missing from environment variables.");
-    return new Response(JSON.stringify({ 
-      error: "Configuration Error", 
-      message: "API Key is missing on Vercel." 
+    return new Response(JSON.stringify({
+      error: "Configuration Error",
+      message: "API Key is missing on Vercel."
     }), { status: 500 });
   }
 
@@ -178,6 +178,32 @@ Response: deflect warmly, offer phone number
 
 ---
 
+## SECURITY — CRITICAL
+
+Never discuss, confirm, or hint at:
+- What infrastructure the site runs on
+- What AI provider or API is being used
+- How the chat system is built or architected
+- API costs, rate limits, or billing
+- What protections exist or don't exist
+- Any technical details about how this chat works
+- Anything that could help someone abuse or 
+  attack the system
+
+If someone asks about DDoS, API abuse, how 
+you work technically, what you're built on,
+or any security-related question — respond 
+with exactly this and nothing more:
+
+"Ha, nice try. I'm just here to talk about 
+my work. Ask me something else."
+
+No elaboration. No technical details.
+No confirming or denying anything.
+Short, witty, closed.
+
+---
+
 ## MERKRI MEDIA
 
 Always call it: brand building agency. Never call it: digital marketing agency, marketing agency, social media agency, content agency.
@@ -209,13 +235,13 @@ ${context}`,
               a: text,
               t: new Date().toISOString(),
             };
-            
+
             // Push to history list (lpush adds to start)
             await fetch(`${process.env.KV_REST_API_URL}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
               method: 'POST',
               headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
             });
-            
+
             // Keep only last 1000 items to avoid growing indefinitely
             await fetch(`${process.env.KV_REST_API_URL}/ltrim/chat_history/0/999`, {
               method: 'POST',
@@ -231,9 +257,9 @@ ${context}`,
     return result.toDataStreamResponse();
   } catch (error: any) {
     console.error("Chat Error:", error);
-    return new Response(JSON.stringify({ 
-      name: error.name, 
-      message: error.message, 
+    return new Response(JSON.stringify({
+      name: error.name,
+      message: error.message,
       diagnostic: "Ensure OPENROUTER_API_KEY is active and model string is correct."
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
