@@ -20,9 +20,9 @@ export async function GET(req: Request) {
     } else if (process.env.REDIS_URL.startsWith('redis://')) {
       // Try to parse redis://[user]:PASSWORD@HOST:PORT
       try {
-        const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:]+)/);
+        const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
         if (urlMatch) {
-          const [_, user, pass, host] = urlMatch;
+          const [_, user, pass, host, port] = urlMatch;
           kvUrl = `https://${host}`;
           if (!kvToken) kvToken = pass;
         }

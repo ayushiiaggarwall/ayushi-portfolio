@@ -236,9 +236,9 @@ ${context}`,
             kvUrl = process.env.REDIS_URL;
           } else if (process.env.REDIS_URL.startsWith('redis://')) {
             try {
-              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:]+)/);
+              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
               if (urlMatch) {
-                const [_, user, pass, host] = urlMatch;
+                const [_, user, pass, host, port] = urlMatch;
                 kvUrl = `https://${host}`;
                 if (!kvToken) kvToken = pass;
               }
