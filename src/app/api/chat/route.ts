@@ -230,8 +230,22 @@ ${context}`,
         let kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_API_URL;
         let kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_API_TOKEN;
 
-        // Fallback for common misconfigurations
-        if (!kvUrl && process.env.REDIS_URL?.startsWith('https://')) kvUrl = process.env.REDIS_URL;
+        // Fallback for common misconfigurations or missing REST variables
+        if (!kvUrl && process.env.REDIS_URL) {
+          if (process.env.REDIS_URL.startsWith('https://')) {
+            kvUrl = process.env.REDIS_URL;
+          } else if (process.env.REDIS_URL.startsWith('redis://')) {
+            try {
+              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/([^:]+):([^@]+)@([^:]+)/);
+              if (urlMatch) {
+                const [_, user, pass, host] = urlMatch;
+                kvUrl = `https://${host}`;
+                if (!kvToken) kvToken = pass;
+              }
+            } catch (e) {}
+          }
+        }
+        
         if (!kvToken && process.env.REDIS_TOKEN) kvToken = process.env.REDIS_TOKEN;
 
         if (kvUrl && kvToken) {
