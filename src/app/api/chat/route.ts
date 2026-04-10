@@ -199,6 +199,33 @@ Never say "As an AI language model". Never say "I don't have personal experience
 KNOWLEDGE CONTEXT (use this to ground your answers — never make up facts not present here):
 ${context}`,
       messages,
+      onFinish: async ({ text }) => {
+        // Asynchronously log the conversation to Vercel KV if configured
+        if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+          try {
+            const userMsg = messages[messages.length - 1]?.content || "N/A";
+            const logEntry = {
+              u: userMsg,
+              a: text,
+              t: new Date().toISOString(),
+            };
+            
+            // Push to history list (lpush adds to start)
+            await fetch(`${process.env.KV_REST_API_URL}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+            });
+            
+            // Keep only last 1000 items to avoid growing indefinitely
+            await fetch(`${process.env.KV_REST_API_URL}/ltrim/chat_history/0/999`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+            });
+          } catch (e) {
+            console.error("KV Log Error:", e);
+          }
+        }
+      }
     });
 
     return result.toDataStreamResponse();
