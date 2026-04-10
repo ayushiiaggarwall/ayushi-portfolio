@@ -3,6 +3,7 @@ import { streamText } from 'ai';
 import fs from 'fs';
 import path from 'path';
 import knowledge from "@/data/knowledge.json";
+import { pushToHistory } from '@/lib/redis-client';
 
 // Trigger comment for Vercel redeploy to pick up new env variables
 export const runtime = 'nodejs';
@@ -248,28 +249,40 @@ ${context}`,
         
         if (!kvToken && process.env.REDIS_TOKEN) kvToken = process.env.REDIS_TOKEN;
 
+        const userMsg = messages[messages.length - 1]?.content || "N/A";
+        const logEntry = {
+          u: userMsg,
+          a: text,
+          t: new Date().toISOString(),
+        };
+
+        let logged = false;
+
+        // Strategy 1: REST Push (preferred for Vercel/Upstash)
         if (kvUrl && kvToken) {
           try {
-            const userMsg = messages[messages.length - 1]?.content || "N/A";
-            const logEntry = {
-              u: userMsg,
-              a: text,
-              t: new Date().toISOString(),
-            };
-            
-            // Push to history list (lpush adds to start)
-            await fetch(`${kvUrl}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
+            const resp = await fetch(`${kvUrl}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
               method: 'POST',
               headers: { Authorization: `Bearer ${kvToken}` }
             });
-            
-            // Keep only last 1000 items
-            await fetch(`${kvUrl}/ltrim/chat_history/0/999`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${kvToken}` }
-            });
+            if (resp.ok) {
+              await fetch(`${kvUrl}/ltrim/chat_history/0/999`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${kvToken}` }
+              });
+              logged = true;
+            }
           } catch (e) {
-            console.error("KV Log Error:", e);
+            console.error("KV REST Log Error:", e);
+          }
+        }
+
+        // Strategy 2: Direct ioredis Push (Fallback for RedisLabs/Local)
+        if (!logged && process.env.REDIS_URL?.includes('redis')) {
+          try {
+            await pushToHistory(logEntry);
+          } catch (e) {
+            console.error("ioredis Log Error:", e);
           }
         }
       }
