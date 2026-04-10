@@ -227,8 +227,12 @@ ${context}`,
       messages,
       onFinish: async ({ text }) => {
         // Asynchronously log the conversation
-        const kvUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_API_URL;
-        const kvToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_API_TOKEN;
+        let kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_API_URL;
+        let kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_API_TOKEN;
+
+        // Fallback for common misconfigurations
+        if (!kvUrl && process.env.REDIS_URL?.startsWith('https://')) kvUrl = process.env.REDIS_URL;
+        if (!kvToken && process.env.REDIS_TOKEN) kvToken = process.env.REDIS_TOKEN;
 
         if (kvUrl && kvToken) {
           try {

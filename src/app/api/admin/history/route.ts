@@ -10,16 +10,22 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const kvUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_API_URL;
-  const kvToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_API_TOKEN;
+  let kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_API_URL;
+  let kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_API_TOKEN;
+
+  // Fallback for common misconfigurations
+  if (!kvUrl && process.env.REDIS_URL?.startsWith('https://')) kvUrl = process.env.REDIS_URL;
+  if (!kvToken && process.env.REDIS_TOKEN) kvToken = process.env.REDIS_TOKEN;
 
   if (!kvUrl || !kvToken) {
     return NextResponse.json({ 
       error: 'Storage not configured',
-      hint: 'Ensure you have Connected your KV storage in the Vercel Storage tab.',
+      hint: 'Ensure you have connected your KV/Redis storage and set the required environment variables (KV_REST_API_URL/TOKEN or UPSTASH_REDIS_REST_URL/TOKEN).',
       debug: {
-        has_KV_URL: !!process.env.KV_REST_API_URL,
-        has_KV_TOKEN: !!process.env.KV_REST_API_TOKEN,
+        has_KV_REST_API_URL: !!process.env.KV_REST_API_URL,
+        has_KV_REST_API_TOKEN: !!process.env.KV_REST_API_TOKEN,
+        has_UPSTASH_REDIS_REST_URL: !!process.env.UPSTASH_REDIS_REST_URL,
+        has_UPSTASH_REDIS_REST_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
         has_REDIS_URL: !!process.env.REDIS_URL
       }
     }, { status: 500 });

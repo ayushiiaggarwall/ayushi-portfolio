@@ -34,7 +34,7 @@
       "title": "Deep Researcher Agent — 🏆 1st Place",
       "date": "December 2025",
       "outcome": "AI-powered research platform with specialized agents for comprehensive deep research. Built a multi-agent research platform where you upload documents, pick a research mode, and let specialized agents do the heavy lifting. The Searcher finds relevant sources. The Summarizer condenses long content. The Fact-Checker verifies claims.",
-      "techStack": ["Antigravity", "LangChain", "LangGraph", "Streamlit", "RAG", "Pinecone"],
+      "techStack": ["Antigravity", "LangChain", "LangGraph", "Streamlit", "RAG"],
       "link": "https://my-deep-researcher-agent.streamlit.app/",
       "video": "https://youtu.be/Ly1F2DNx2T4?si=W9jWGg5iAkFvMX_l"
     },
