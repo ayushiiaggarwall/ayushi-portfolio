@@ -13,16 +13,13 @@ type ChatLog = {
 
 function DashboardContent() {
   const [logs, setLogs] = useState<ChatLog[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [passcode, setPasscode] = useState("");
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [showPasscode, setShowPasscode] = useState(false);
+  const [debug, setDebug] = useState<any>(null);
 
   const fetchLogs = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
     setError(null);
+    setDebug(null);
 
     try {
       const resp = await fetch(`/api/admin/history?key=${encodeURIComponent(passcode)}`);
@@ -33,6 +30,7 @@ function DashboardContent() {
         setIsAuthorized(true);
       } else {
         setError(data.error || "Failed to fetch logs");
+        setDebug(data.debug || data.hint || null);
         setIsAuthorized(false);
       }
     } catch (err) {
@@ -81,13 +79,18 @@ function DashboardContent() {
               </div>
 
               {error && (
-                <motion.p 
+                <motion.div 
                   initial={{ opacity: 0 }} 
                   animate={{ opacity: 1 }} 
-                  className="text-red-400 text-[10px] text-center uppercase tracking-widest"
+                  className="space-y-2 text-center"
                 >
-                  {error}
-                </motion.p>
+                  <p className="text-red-400 text-[10px] uppercase tracking-widest">{error}</p>
+                  {debug && (
+                    <pre className="text-[9px] text-white/20 bg-white/5 p-2 rounded overflow-x-auto text-left">
+                      {typeof debug === 'string' ? debug : JSON.stringify(debug, null, 2)}
+                    </pre>
+                  )}
+                </motion.div>
               )}
 
               <button 
