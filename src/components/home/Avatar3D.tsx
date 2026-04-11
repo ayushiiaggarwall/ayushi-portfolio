@@ -13,6 +13,7 @@ import ReactMarkdown from "react-markdown";
 interface Avatar3DProps {
   messages: Message[];
   isTalking?: boolean;
+  onTalkingChange?: (talking: boolean) => void;
 }
 
 // The cool AI Hologram core placeholder (now used as fallback loader)
@@ -154,7 +155,7 @@ export function LoadedModel({ url, isTalking }: { url: string; isTalking: boolea
 }
 useGLTF.preload('/models/avatar.glb');
 
-export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
+export function Avatar3D({ messages, isTalking, onTalkingChange }: Avatar3DProps) {
   const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   // Cast to the RefObject<Element> type framer-motion's viewport prop expects
@@ -186,7 +187,13 @@ export function Avatar3D({ messages, isTalking }: Avatar3DProps) {
   }, [viewingMessage?.content]);
   const lastAssistantMessage = messages.slice().reverse().find(m => m.role === "assistant");
   const [spokenMessageId, setSpokenMessageId] = useState<string | null>(null);
-  const [talking, setTalking] = useState(false);
+  const [talking, _setTalking] = useState(false);
+
+  const setTalking = (val: boolean) => {
+    _setTalking(val);
+    if (onTalkingChange) onTalkingChange(val);
+  };
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const processedTextRef = useRef("");

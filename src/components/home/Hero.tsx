@@ -42,20 +42,19 @@ const TerminalText = ({ text, delay = 0, className = "" }: { text: string; delay
 
 export function Hero() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   return (
     <section className="flex flex-col w-full h-[calc(100vh-56px)] relative  overflow-hidden">
       
-      {/* Dynamic Ambient Background */}
+      {/* ... Ambient Background and HUD ... */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent z-20" />
 
-      {/* Main Single-Column Immersive Layout */}
       <div className="w-full h-full min-h-0 max-w-[1200px] mx-auto flex flex-col items-center justify-center relative z-10 px-4 md:px-8 py-8 md:py-12">
         
         {/* Cinematic Typography HUD Layer */}
         <div className="w-full flex-shrink-0 flex flex-col items-center justify-center pointer-events-none z-20 px-4 mt-2 lg:mt-6 mb-4 lg:mb-8">
           
-          {/* Multi-Tag Array */}
           <motion.div 
             initial={{ opacity: 0, filter: "blur(5px)" }}
             animate={{ opacity: 1, filter: "blur(0px)" }}
@@ -74,7 +73,6 @@ export function Hero() {
             </span>
           </motion.div>
           
-          {/* Stacked Multi-line Terminal Text */}
           <div className="flex flex-col items-center gap-2 lg:gap-3">
             <TerminalText 
               className="text-xl sm:text-2xl md:text-[2rem] font-medium tracking-wide mb-1"
@@ -103,7 +101,7 @@ export function Hero() {
         >
           {/* 3D Hologram Avatar Core */}
           <div className="absolute inset-0 w-full h-full z-10 flex items-center justify-center">
-            <Avatar3D messages={messages} isTalking={isLoading} />
+            <Avatar3D messages={messages} isTalking={isLoading} onTalkingChange={setIsSpeaking} />
           </div>
 
           {/* Integrated HUD Chat Input Bar */}
@@ -118,7 +116,7 @@ export function Hero() {
               className="relative w-full rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] focus-within:ring-1 focus-within:ring-cyan-500/50 flex items-center p-2 transition-all hover:bg-black/60"
             >
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 ml-1">
-                {isLoading ? (
+                {(isLoading || isSpeaking) ? (
                   <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
                 ) : (
                   <Sparkles className="w-4 h-4 text-cyan-500/60" />
@@ -127,12 +125,13 @@ export function Hero() {
               <input
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Ask me anything..."
-                className="font-sans flex-1 bg-transparent border-0 text-white placeholder:text-white/30 text-[15px] focus:outline-none focus:ring-0 px-4 h-10"
+                placeholder={(isLoading || isSpeaking) ? "Waiting for system output..." : "Ask me anything..."}
+                disabled={isLoading || isSpeaking}
+                className="font-sans flex-1 bg-transparent border-0 text-white placeholder:text-white/30 text-[15px] focus:outline-none focus:ring-0 px-4 h-10 disabled:opacity-50"
               />
               <button 
                 type="submit" 
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isSpeaking}
                 className="w-10 h-10 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0 mr-1 transition-colors disabled:opacity-50 disabled:hover:bg-cyan-500/20"
               >
                 <Send className="w-4 h-4 translate-x-[-1px]" />
