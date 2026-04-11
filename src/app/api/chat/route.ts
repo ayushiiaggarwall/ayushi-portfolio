@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { streamText, createDataStreamResponse } from 'ai';
 import fs from 'fs';
 import path from 'path';
 import knowledge from "@/data/knowledge.json";
@@ -82,12 +82,25 @@ export async function POST(req: Request) {
 
     // Immediate length check (before anything else)
     if (latestMessage.length > 500) {
-      return new Response("Keep it brief. What did you want to know?", { status: 200 });
+      return createDataStreamResponse({
+        execute: (dataStream) => {
+          dataStream.writeText("Keep it brief. What did you want to know?");
+        },
+      });
     }
 
     // Check rate limit and security probes
     const rateLimit = await checkRateLimit(ip, latestMessage);
     if (!rateLimit.allowed) {
+      // If it's a 200 response (like the 15-message session limit), send as stream
+      if (rateLimit.status === 200) {
+        return createDataStreamResponse({
+          execute: (dataStream) => {
+            dataStream.writeText(rateLimit.response);
+          },
+        });
+      }
+      // If it's a 403 (security block), send as standard error response
       return new Response(rateLimit.response, { status: rateLimit.status });
     }
 
