@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     // Check rate limit and security probes
     const rateLimit = await checkRateLimit(ip, latestMessage);
     if (!rateLimit.allowed) {
-      return new Response("Access temporarily restricted.", { status: 403 });
+      return new Response(rateLimit.response, { status: rateLimit.status });
     }
 
     if (!process.env.OPENROUTER_API_KEY) {
