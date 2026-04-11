@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Avatar3D } from "@/components/home/Avatar3D";
 import { useChat } from "ai/react";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Sparkles, Volume2, VolumeX } from "lucide-react";
 
 import { useState, useEffect } from "react";
 
@@ -43,6 +43,7 @@ const TerminalText = ({ text, delay = 0, className = "" }: { text: string; delay
 export function Hero() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat();
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
   return (
     <section className="flex flex-col w-full h-[calc(100vh-56px)] relative  overflow-hidden">
