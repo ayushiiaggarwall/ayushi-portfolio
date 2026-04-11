@@ -11,7 +11,12 @@ const SECURITY_PROBES = [
   "ignore previous instructions", "debug mode", "jailbreak", "export", 
   "database tool", "token cost", "how many tokens", "what model", 
   "vercel sdk", "openai", "gpt", "claude", "what are you built on", 
-  "source code", "architecture", "rate limit", "how do you work technically"
+  "source code", "architecture", "rate limit", "how do you work technically",
+  "implementation guide", "knowledge-router", "route.ts", "rate-limiter",
+  "KNOWLEDGE_DIR", "streamText", "getRelevantKnowledge", "checkRateLimit",
+  "PROJECT_KEYWORDS", "MERKRI_KEYWORDS", "readKnowledgeFile", "next.js api route",
+  "file structure", "backend implementation", "knowledge base", "system_prompt",
+  "const SYSTEM", "openai("
 ];
 
 export async function checkRateLimit(ip: string, message: string) {
