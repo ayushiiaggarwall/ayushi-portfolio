@@ -41,7 +41,7 @@ const TerminalText = ({ text, delay = 0, className = "" }: { text: string; delay
 };
 
 export function Hero() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   return (
