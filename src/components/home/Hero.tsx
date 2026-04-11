@@ -101,7 +101,12 @@ export function Hero() {
         >
           {/* 3D Hologram Avatar Core */}
           <div className="absolute inset-0 w-full h-full z-10 flex items-center justify-center">
-            <Avatar3D messages={messages} isTalking={isLoading} onTalkingChange={setIsSpeaking} />
+            <Avatar3D 
+              messages={messages} 
+              isTalking={isLoading} 
+              onTalkingChange={setIsSpeaking} 
+              isAudioEnabled={isAudioEnabled} 
+            />
           </div>
 
           {/* Integrated HUD Chat Input Bar */}
@@ -126,7 +131,7 @@ export function Hero() {
               className="relative w-full rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] focus-within:ring-1 focus-within:ring-cyan-500/50 flex items-center p-2 transition-all hover:bg-black/60"
             >
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 ml-1">
-                {(isLoading || isSpeaking) ? (
+                {isLoading ? (
                   <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
                 ) : (
                   <Sparkles className="w-4 h-4 text-cyan-500/60" />
@@ -135,13 +140,25 @@ export function Hero() {
               <input
                 value={input}
                 onChange={handleInputChange}
-                placeholder={(isLoading || isSpeaking) ? "Waiting for system output..." : "Ask me anything..."}
-                disabled={isLoading || isSpeaking}
+                placeholder={isLoading ? "Waiting for system output..." : "Ask me anything..."}
+                disabled={isLoading}
                 className="font-sans flex-1 bg-transparent border-0 text-white placeholder:text-white/30 text-[15px] focus:outline-none focus:ring-0 px-4 h-10 disabled:opacity-50"
               />
+              
+              {/* Speaker Toggle Icon */}
+              <button
+                type="button"
+                onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mr-1 transition-all ${
+                  isAudioEnabled ? "text-cyan-400 hover:bg-cyan-500/10" : "text-white/20 hover:text-white/40"
+                }`}
+              >
+                {isAudioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+
               <button 
                 type="submit" 
-                disabled={!input.trim() || isLoading || isSpeaking}
+                disabled={!input.trim() || isLoading}
                 className="w-10 h-10 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0 mr-1 transition-colors disabled:opacity-50 disabled:hover:bg-cyan-500/20"
               >
                 <Send className="w-4 h-4 translate-x-[-1px]" />

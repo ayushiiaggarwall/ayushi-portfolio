@@ -14,6 +14,7 @@ interface Avatar3DProps {
   messages: Message[];
   isTalking?: boolean;
   onTalkingChange?: (talking: boolean) => void;
+  isAudioEnabled?: boolean;
 }
 
 // The cool AI Hologram core placeholder (now used as fallback loader)
@@ -155,7 +156,7 @@ export function LoadedModel({ url, isTalking }: { url: string; isTalking: boolea
 }
 useGLTF.preload('/models/avatar.glb');
 
-export function Avatar3D({ messages, isTalking, onTalkingChange }: Avatar3DProps) {
+export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled = true }: Avatar3DProps) {
   const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   // Cast to the RefObject<Element> type framer-motion's viewport prop expects
@@ -221,7 +222,7 @@ export function Avatar3D({ messages, isTalking, onTalkingChange }: Avatar3DProps
   };
 
   const playNextInQueue = async () => {
-    if (audioQueueRef.current.length === 0) {
+    if (audioQueueRef.current.length === 0 || !isAudioEnabled) {
       isPlayingRef.current = false;
       setTalking(false);
       return;
@@ -316,6 +317,16 @@ export function Avatar3D({ messages, isTalking, onTalkingChange }: Avatar3DProps
        }
     }
   }, [lastAssistantMessage?.content, lastAssistantMessage?.id, isTalking, spokenMessageId]);
+
+  useEffect(() => {
+    if (!isAudioEnabled && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      setTalking(false);
+      isPlayingRef.current = false;
+      audioQueueRef.current = [];
+    }
+  }, [isAudioEnabled]);
 
   useEffect(() => {
     // Cleanup on unmount
