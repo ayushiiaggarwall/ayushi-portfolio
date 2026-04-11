@@ -70,6 +70,11 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const latestMessage = messages[messages.length - 1]?.content || "";
 
+    // Immediate length check (before anything else)
+    if (latestMessage.length > 500) {
+      return new Response("Keep it brief. What did you want to know?", { status: 200 });
+    }
+
     // Check rate limit and security probes
     const rateLimit = await checkRateLimit(ip, latestMessage);
     if (!rateLimit.allowed) {
