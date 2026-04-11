@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import knowledge from "@/data/knowledge.json";
 import { pushToHistory } from '@/lib/redis-client';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 // Trigger comment for Vercel redeploy to pick up new env variables
 export const runtime = 'nodejs';
@@ -62,16 +63,27 @@ async function getContext() {
 export async function POST(req: Request) {
   console.log("POST /api/chat invocation");
 
-  if (!process.env.OPENROUTER_API_KEY) {
-    console.error("OPENROUTER_API_KEY is missing from environment variables.");
-    return new Response(JSON.stringify({
-      error: "Configuration Error",
-      message: "API Key is missing on Vercel."
-    }), { status: 500 });
-  }
+  // Get IP for rate limiting
+  const ip = req.headers.get('x-forwarded-for') || 'anonymous';
 
   try {
     const { messages } = await req.json();
+    const latestMessage = messages[messages.length - 1]?.content || "";
+
+    // Check rate limit and security probes
+    const rateLimit = await checkRateLimit(ip, latestMessage);
+    if (!rateLimit.allowed) {
+      return new Response("Access temporarily restricted.", { status: 403 });
+    }
+
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error("OPENROUTER_API_KEY is missing from environment variables.");
+      return new Response(JSON.stringify({
+        error: "Configuration Error",
+        message: "API Key is missing on Vercel."
+      }), { status: 500 });
+    }
+
     const context = await getContext();
 
     // Reverted to your original model string which worked locally
@@ -246,7 +258,7 @@ Never say "As an AI language model". Never say "I don't have personal experience
 
 ---
 
-KNOWLEDGE CONTEXT (use this to ground your answers — never make up facts not present here):
+## KNOWLEDGE CONTEXT (use this to ground your answers — never make up facts not present here):
 ${context}`,
       messages,
       onFinish: async ({ text }) => {
@@ -258,18 +270,18 @@ ${context}`,
         if (!kvUrl && process.env.REDIS_URL) {
           if (process.env.REDIS_URL.startsWith('https://')) {
             kvUrl = process.env.REDIS_URL;
-          } else if (process.env.REDIS_URL.startsWith('redis://')) {
+          } else if (process.env.REDIS_URL.startsWith('redis://') || process.env.REDIS_URL.startsWith('rediss://')) {
             try {
-              const urlMatch = process.env.REDIS_URL.match(/redis:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
+              const urlMatch = process.env.REDIS_URL.match(/redis[s]?:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
               if (urlMatch) {
                 const [_, user, pass, host, port] = urlMatch;
                 kvUrl = `https://${host}`;
                 if (!kvToken) kvToken = pass;
               }
-            } catch (e) { }
+            } catch (e) {}
           }
         }
-
+        
         if (!kvToken && process.env.REDIS_TOKEN) kvToken = process.env.REDIS_TOKEN;
 
         const userMsg = messages[messages.length - 1]?.content || "N/A";
