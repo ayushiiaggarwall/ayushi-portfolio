@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, createDataStreamResponse } from 'ai';
+import { streamText } from 'ai';
 import fs from 'fs';
 import path from 'path';
 import knowledge from "@/data/knowledge.json";
@@ -82,22 +82,18 @@ export async function POST(req: Request) {
 
     // Immediate length check (before anything else)
     if (latestMessage.length > 500) {
-      return createDataStreamResponse({
-        execute: (dataStream) => {
-          dataStream.writeText("Keep it brief. What did you want to know?");
-        },
+      return new Response('0:"Keep it brief. What did you want to know?"\n', {
+        headers: { 'x-vercel-ai-data-stream': 'v1', 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }
 
     // Check rate limit and security probes
     const rateLimit = await checkRateLimit(ip, latestMessage);
     if (!rateLimit.allowed) {
-      // If it's a 200 response (like the 15-message session limit), send as stream
+      // If it's a 200 response (like the 15-message session limit), send as manual stream
       if (rateLimit.status === 200) {
-        return createDataStreamResponse({
-          execute: (dataStream) => {
-            dataStream.writeText(rateLimit.response);
-          },
+        return new Response(`0:${JSON.stringify(rateLimit.response)}\n`, {
+          headers: { 'x-vercel-ai-data-stream': 'v1', 'Content-Type': 'text/plain; charset=utf-8' }
         });
       }
       // If it's a 403 (security block), send as standard error response
