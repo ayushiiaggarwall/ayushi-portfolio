@@ -109,8 +109,18 @@ export function Hero() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="w-full max-w-[650px] mb-6 relative z-30 pointer-events-auto"
+            className="w-full max-w-[650px] mb-6 relative z-30 pointer-events-auto flex flex-col items-center gap-3"
           >
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono tracking-wider backdrop-blur-md"
+              >
+                SYSTEM ERROR: Access temporarily restricted.
+              </motion.div>
+            )}
+
             <form 
               onSubmit={handleSubmit} 
               className="relative w-full rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] focus-within:ring-1 focus-within:ring-cyan-500/50 flex items-center p-2 transition-all hover:bg-black/60"
