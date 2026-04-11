@@ -225,6 +225,7 @@ export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled 
     if (audioQueueRef.current.length === 0 || !isAudioEnabled) {
       isPlayingRef.current = false;
       setTalking(false);
+      audioQueueRef.current = []; // Clear queue if disabled or empty
       return;
     }
 
@@ -244,6 +245,15 @@ export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled 
           const blob = await response.blob();
           url = URL.createObjectURL(blob);
         }
+      }
+
+      // Re-check isAudioEnabled after fetch (it might have changed during network wait)
+      if (!isAudioEnabled) {
+        if (url) URL.revokeObjectURL(url);
+        isPlayingRef.current = false;
+        setTalking(false);
+        audioQueueRef.current = [];
+        return;
       }
 
       if (url) {
@@ -305,6 +315,12 @@ export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled 
 
        if (textChunk.length > 0) {
          processedTextRef.current += unprocessed.slice(0, chunkEndIndex);
+         
+         // Don't queue or play if audio is disabled
+         if (!isAudioEnabled) {
+           return;
+         }
+
          const newItem = { text: textChunk };
          audioQueueRef.current.push(newItem);
          
@@ -316,14 +332,17 @@ export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled 
          }
        }
     }
-  }, [lastAssistantMessage?.content, lastAssistantMessage?.id, isTalking, spokenMessageId]);
+  }, [lastAssistantMessage?.content, lastAssistantMessage?.id, isTalking, spokenMessageId, isAudioEnabled]);
 
   useEffect(() => {
-    if (!isAudioEnabled && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
+    if (!isAudioEnabled) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
       setTalking(false);
       isPlayingRef.current = false;
+      audioQueueRef.current.forEach(item => item.url && URL.revokeObjectURL(item.url));
       audioQueueRef.current = [];
     }
   }, [isAudioEnabled]);
