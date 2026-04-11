@@ -1,5 +1,6 @@
 type RateLimitData = {
   requests: number;
+  messages: number;
   probes: number;
   blockedUntil: number;
 };
@@ -21,7 +22,7 @@ const SECURITY_PROBES = [
 
 export async function checkRateLimit(ip: string, message: string) {
   const now = Date.now();
-  let data = rateLimitMap.get(ip) || { requests: 0, probes: 0, blockedUntil: 0 };
+  let data = rateLimitMap.get(ip) || { requests: 0, messages: 0, probes: 0, blockedUntil: 0 };
 
   // Check if currently blocked by security probes
   if (data.blockedUntil > now) {
@@ -29,7 +30,7 @@ export async function checkRateLimit(ip: string, message: string) {
   }
 
   // Check general message limit (15 per session)
-  if (data.requests >= 15) {
+  if (data.messages >= 15) {
     return { 
       allowed: false, 
       response: "That's enough for one session. If you want to keep talking, reach out directly — ayushi@merkri.media", 
@@ -37,8 +38,9 @@ export async function checkRateLimit(ip: string, message: string) {
     };
   }
 
-  // Increment requests
+  // Increment counters
   data.requests++;
+  data.messages++;
 
   // Check for probes
   const containsProbe = SECURITY_PROBES.some(probe => 
