@@ -504,7 +504,7 @@ export function Avatar3D({ messages, isTalking, onTalkingChange, isAudioEnabled 
                    </div>
                 </div>
                 
-                <div className="font-sans text-[15px] sm:text-[16px] font-medium leading-relaxed prose prose-invert max-w-none prose-p:my-4 prose-ul:my-4 prose-li:my-1 prose-a:text-cyan-400 hover:prose-a:text-cyan-300 text-white/90">
+                <div className="font-mono text-[14px] sm:text-[15px] font-medium leading-relaxed prose prose-invert max-w-none prose-p:my-4 prose-ul:my-4 prose-li:my-1 prose-a:text-cyan-400 hover:prose-a:text-cyan-300 text-white/90">
                   <ReactMarkdown>{viewingMessage.content}</ReactMarkdown>
                 </div>
               </motion.div>
