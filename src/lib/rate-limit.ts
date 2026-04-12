@@ -26,7 +26,15 @@ export async function checkRateLimit(ip: string, message: string) {
 
   // Check if currently blocked by security probes
   if (data.blockedUntil > now) {
-    return { allowed: false, response: "Access temporarily restricted.", status: 403 };
+    const responses = [
+      "I see what you're doing. Let's take a break and come back when you want to talk about my work.",
+      "Caught that. I'm restricting access for a bit — try me later with a real question.",
+      "Nice try, but I've noticed too many probes. Let's chat again once you're interested in my products.",
+      "That's enough for now. I'm locking this down for a while. Catch you later."
+    ];
+    // Use the probes count to pick a message or just random
+    const response = responses[data.probes % responses.length];
+    return { allowed: false, response, status: 403 };
   }
 
   // Check general message limit (15 per session)
@@ -62,4 +70,22 @@ export async function checkRateLimit(ip: string, message: string) {
 
   rateLimitMap.set(ip, data);
   return { allowed: true };
+}
+
+export function recordProbe(ip: string) {
+  const now = Date.now();
+  let data = rateLimitMap.get(ip) || { requests: 0, messages: 0, probes: 0, blockedUntil: 0 };
+  
+  data.probes++;
+
+  // Progressive blocking levels
+  if (data.probes >= 10) {
+    data.blockedUntil = now + (24 * 60 * 60 * 1000); // Level 3: 24h
+  } else if (data.probes >= 5) {
+    data.blockedUntil = now + (60 * 60 * 1000); // Level 2: 1h
+  } else if (data.probes >= 3) {
+    data.blockedUntil = now + (5 * 60 * 1000); // Level 1: 5m
+  }
+
+  rateLimitMap.set(ip, data);
 }
