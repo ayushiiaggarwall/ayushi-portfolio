@@ -125,7 +125,7 @@ function DashboardContent() {
           <div className="hidden md:flex items-center gap-2 text-[10px] tracking-[0.2em] text-white/40 uppercase">
             <span>STORAGE : VERCEL KV</span>
             <span className="text-white/10">•</span>
-            <span>LOGS : {logs.length} / 100</span>
+            <span>LOGS : {logs.length} / 1000</span>
           </div>
         </div>
         
@@ -215,7 +215,7 @@ function DashboardContent() {
         <div className="mt-12 text-center">
            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[9px] text-white/30 tracking-[0.2em] uppercase">
               <Sparkles className="w-3 h-3" />
-              Auto-pruning active (100 log limit)
+              Auto-pruning active (1000 log limit)
            </div>
         </div>
       </main>

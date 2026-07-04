@@ -243,8 +243,8 @@ Message to classify: ${latestMessage}`;
               localLogs = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
             }
             localLogs.unshift(logEntry); // add to start
-            if (localLogs.length > 100) {
-              localLogs = localLogs.slice(0, 100);
+            if (localLogs.length > 1000) {
+              localLogs = localLogs.slice(0, 1000);
             }
             fs.writeFileSync(historyFile, JSON.stringify(localLogs, null, 2));
             logged = true;

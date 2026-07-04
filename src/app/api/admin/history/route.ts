@@ -43,7 +43,7 @@ export async function GET(req: Request) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
 
-      const response = await fetch(`${kvUrl}/lrange/chat_history/0/99`, {
+      const response = await fetch(`${kvUrl}/lrange/chat_history/0/999`, {
         headers: { Authorization: `Bearer ${kvToken}` },
         signal: controller.signal
       });
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
   // Strategy 2: Attempt direct ioredis connection (Fallback for RedisLabs/Local)
   if (!redisResult && process.env.REDIS_URL?.includes('redis')) {
     try {
-      redisResult = await getHistoryFromRedis(0, 99);
+      redisResult = await getHistoryFromRedis(0, 999);
       if (!redisResult) errorSource = "ioredis returned null";
     } catch (err: any) {
       errorSource = `ioredis Error: ${err.message}`;
