@@ -217,8 +217,28 @@ Message to classify: ${latestMessage}`;
         if (!logged && process.env.REDIS_URL?.includes('redis')) {
           try {
             await pushToHistory(logEntry);
+            logged = true;
           } catch (e) {
             console.error("ioredis Log Error:", e);
+          }
+        }
+
+        // Strategy 3: Local File Fallback (for development / missing Redis)
+        if (!logged) {
+          try {
+            const historyFile = path.join(process.cwd(), 'src/data/chat_history.json');
+            let localLogs = [];
+            if (fs.existsSync(historyFile)) {
+              localLogs = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+            }
+            localLogs.unshift(logEntry); // add to start
+            if (localLogs.length > 100) {
+              localLogs = localLogs.slice(0, 100);
+            }
+            fs.writeFileSync(historyFile, JSON.stringify(localLogs, null, 2));
+            logged = true;
+          } catch (e) {
+            console.error("Local file log error:", e);
           }
         }
       }

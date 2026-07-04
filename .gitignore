@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local history and scratch scripts
+src/data/chat_history.json
+scratch/
