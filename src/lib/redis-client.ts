@@ -3,7 +3,9 @@ import Redis from 'ioredis';
 let redis: Redis | null = null;
 
 export function getRedisClient() {
-  const redisUrl = process.env.REDIS_URL;
+  // Prioritize prefixed REDIS_URL (which is the new working one) over standard REDIS_URL
+  const prefixedKey = Object.keys(process.env).find(k => k.endsWith('REDIS_URL') && k !== 'REDIS_URL');
+  const redisUrl = prefixedKey ? process.env[prefixedKey] : process.env.REDIS_URL;
   if (!redisUrl) return null;
   
   if (!redis) {

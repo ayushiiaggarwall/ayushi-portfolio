@@ -167,13 +167,25 @@ Message to classify: ${latestMessage}`;
         let kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_API_URL;
         let kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_API_TOKEN;
 
+        // Dynamic lookup for prefixed environment variables (e.g. ayushiportfolio_KV_REST_API_URL)
+        if (!kvUrl || !kvToken) {
+          const urlKey = Object.keys(process.env).find(k => k.endsWith('KV_REST_API_URL'));
+          const tokenKey = Object.keys(process.env).find(k => k.endsWith('KV_REST_API_TOKEN'));
+          if (urlKey) kvUrl = process.env[urlKey];
+          if (tokenKey) kvToken = process.env[tokenKey];
+        }
+
+        // Prioritize prefixed REDIS_URL if standard REDIS_URL is not set or to override the old one
+        const prefixedRedisKey = Object.keys(process.env).find(k => k.endsWith('REDIS_URL') && k !== 'REDIS_URL');
+        const activeRedisUrl = prefixedRedisKey ? process.env[prefixedRedisKey] : process.env.REDIS_URL;
+
         // Fallback for common misconfigurations or missing REST variables
-        if (!kvUrl && process.env.REDIS_URL) {
-          if (process.env.REDIS_URL.startsWith('https://')) {
-            kvUrl = process.env.REDIS_URL;
-          } else if (process.env.REDIS_URL.startsWith('redis://') || process.env.REDIS_URL.startsWith('rediss://')) {
+        if (!kvUrl && activeRedisUrl) {
+          if (activeRedisUrl.startsWith('https://')) {
+            kvUrl = activeRedisUrl;
+          } else if (activeRedisUrl.startsWith('redis://') || activeRedisUrl.startsWith('rediss://')) {
             try {
-              const urlMatch = process.env.REDIS_URL.match(/redis[s]?:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
+              const urlMatch = activeRedisUrl.match(/redis[s]?:\/\/(?:([^:]*):)?([^@]+)@([^:/]+)(?::(\d+))?/);
               if (urlMatch) {
                 const [_, user, pass, host, port] = urlMatch;
                 kvUrl = `https://${host}`;
