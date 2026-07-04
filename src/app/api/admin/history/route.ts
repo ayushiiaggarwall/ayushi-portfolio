@@ -40,9 +40,14 @@ export async function GET(req: Request) {
   // Strategy 1: Attempt REST Fetch (preferred for Vercel/Upstash)
   if (kvUrl && kvToken) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
       const response = await fetch(`${kvUrl}/lrange/chat_history/0/99`, {
-        headers: { Authorization: `Bearer ${kvToken}` }
+        headers: { Authorization: `Bearer ${kvToken}` },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const { result } = await response.json();

@@ -10,7 +10,12 @@ export function getRedisClient() {
     // Only use ioredis for actual redis:// or rediss:// URLs
     if (redisUrl.startsWith('redis://') || redisUrl.startsWith('rediss://')) {
       redis = new Redis(redisUrl, {
-        maxRetriesPerRequest: null,
+        connectTimeout: 2000,
+        maxRetriesPerRequest: 1,
+        retryStrategy(times) {
+          if (times > 2) return null; // stop retrying after 2 attempts
+          return Math.min(times * 100, 1000);
+        }
       });
     }
   }

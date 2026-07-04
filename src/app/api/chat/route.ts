@@ -197,15 +197,26 @@ Message to classify: ${latestMessage}`;
         // Strategy 1: REST Push (preferred for Vercel/Upstash)
         if (kvUrl && kvToken) {
           try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+
             const resp = await fetch(`${kvUrl}/lpush/chat_history/${encodeURIComponent(JSON.stringify(logEntry))}`, {
               method: 'POST',
-              headers: { Authorization: `Bearer ${kvToken}` }
+              headers: { Authorization: `Bearer ${kvToken}` },
+              signal: controller.signal
             });
+            clearTimeout(timeoutId);
+
             if (resp.ok) {
+              const trimController = new AbortController();
+              const trimTimeoutId = setTimeout(() => trimController.abort(), 2000);
+
               await fetch(`${kvUrl}/ltrim/chat_history/0/999`, {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${kvToken}` }
+                headers: { Authorization: `Bearer ${kvToken}` },
+                signal: trimController.signal
               });
+              clearTimeout(trimTimeoutId);
               logged = true;
             }
           } catch (e) {
